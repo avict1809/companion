@@ -4,9 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Upload, FileText, MessageSquare, BookOpen, Download, Trash2, Eye, Zap } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { StatusBar } from 'expo-status-bar';
 
 export default function PDFToolsScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [currentPDF, setCurrentPDF] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -116,7 +117,11 @@ export default function PDFToolsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+          edges={['top']}
+          style={[styles.safeArea, { backgroundColor: colors.background }]}
+        >
+          <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -127,7 +132,7 @@ export default function PDFToolsScreen() {
         </View>
 
         {/* Upload Section */}
-        <View style={[styles.uploadSection, { backgroundColor: colors.surface }]}>
+        <View style={[styles.uploadSection, { backgroundColor: colors.surface, borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Upload PDF</Text>
           
           <TouchableOpacity
@@ -183,7 +188,7 @@ export default function PDFToolsScreen() {
         )}
 
         {/* PDF Actions */}
-        <View style={styles.section}>
+        <View style={[styles.section, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Actions</Text>
           <View style={styles.actionsGrid}>
             {pdfActions.map((action, index) => (
@@ -195,6 +200,7 @@ export default function PDFToolsScreen() {
                     backgroundColor: colors.surface,
                     opacity: currentPDF && !isProcessing ? 1 : 0.5,
                   },
+                  { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }
                 ]}
                 onPress={() => handleAction(action.action)}
                 activeOpacity={0.7}
@@ -213,7 +219,7 @@ export default function PDFToolsScreen() {
         </View>
 
         {/* Recent PDFs */}
-        <View style={styles.section}>
+        <View style={[styles.section,{ borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent PDFs</Text>
           {recentPDFs.map((pdf, index) => (
             <View
@@ -254,7 +260,7 @@ export default function PDFToolsScreen() {
         </View>
 
         {/* Usage Stats */}
-        <View style={[styles.statsSection, { backgroundColor: colors.surface }]}>
+        <View style={[styles.statsSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16,marginBottom: 24 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Usage This Month</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
@@ -280,9 +286,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   content: {
     flex: 1,
     padding: 20,
+    paddingTop: 0,
   },
   header: {
     marginBottom: 24,

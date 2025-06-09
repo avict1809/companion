@@ -42,7 +42,7 @@ export default function HomeScreen() {
         {/* Progress Overview */}
         <View style={styles.topBar}>
           <View style={styles.topBarText}>
-            <Text style={[styles.greeting, { color: colors.text }]}>Good morning! 👋</Text>
+            <Text style={[styles.greeting, { color: colors.text }]}>Hello Avict! 👋</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Ready to learn something new?</Text>
           </View>
           <View style={styles.topBarIcons}>

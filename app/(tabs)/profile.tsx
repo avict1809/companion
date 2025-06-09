@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
+import { StatusBar } from 'expo-status-bar';
 import {
   User,
   Settings,
@@ -16,6 +17,7 @@ import {
   ChevronRight,
   Crown,
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 export default function ProfileScreen() {
   const { colors, theme, setTheme, isDark } = useTheme();
@@ -52,14 +54,14 @@ export default function ProfileScreen() {
       icon: Settings,
       title: 'Account Settings',
       subtitle: 'Profile & preferences',
-      action: 'settings',
+      action: 'account-settings',
       showChevron: true,
     },
     {
       icon: HelpCircle,
       title: 'Help & Support',
       subtitle: 'FAQ & contact',
-      action: 'help',
+      action: 'help-and-support',
       showChevron: true,
     },
   ];
@@ -69,7 +71,11 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+          edges={['top']}
+          style={[styles.safeArea, { backgroundColor: colors.background }]}
+        >
+          <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -77,7 +83,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* User Profile */}
-        <View style={[styles.profileSection, { backgroundColor: colors.surface }]}>
+        <View style={[styles.profileSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
             <User size={32} color="#FFFFFF" />
           </View>
@@ -98,7 +104,7 @@ export default function ProfileScreen() {
           {stats.map((stat, index) => (
             <View
               key={index}
-              style={[styles.statCard, { backgroundColor: colors.surface }]}
+              style={[styles.statCard, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}
             >
               <stat.icon size={20} color={stat.color} />
               <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
@@ -110,7 +116,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Theme Toggle */}
-        <View style={[styles.themeSection, { backgroundColor: colors.surface }]}>
+        <View style={[styles.themeSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={styles.themeHeader}>
             <View style={styles.themeInfo}>
               {isDark ? (
@@ -132,12 +138,13 @@ export default function ProfileScreen() {
         </View>
 
         {/* Menu Items */}
-        <View style={styles.menuSection}>
+        <View style={[styles.menuSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.menuItem, { backgroundColor: colors.surface }]}
+              style={[styles.menuItem, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border , borderRadius: 16, padding: 16, marginVertical: 4 }]}
               activeOpacity={0.7}
+              onPress={() => router.push(item.action)}
             >
               <item.icon size={20} color={colors.textSecondary} />
               <View style={styles.menuItemContent}>
@@ -156,10 +163,10 @@ export default function ProfileScreen() {
         </View>
 
         {/* Billing History */}
-        <View style={[styles.billingSection, { backgroundColor: colors.surface }]}>
+        <View style={[styles.billingSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Billing History</Text>
           
-          <View style={styles.billingItem}>
+          <View style={[styles.billingItem,{ borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
             <View style={styles.billingInfo}>
               <Text style={[styles.billingDate, { color: colors.text }]}>Jan 2025</Text>
               <Text style={[styles.billingDesc, { color: colors.textSecondary }]}>
@@ -169,7 +176,7 @@ export default function ProfileScreen() {
             <Text style={[styles.billingAmount, { color: colors.success }]}>$9.99</Text>
           </View>
           
-          <View style={styles.billingItem}>
+          <View style={[styles.billingItem, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
             <View style={styles.billingInfo}>
               <Text style={[styles.billingDate, { color: colors.text }]}>Dec 2024</Text>
               <Text style={[styles.billingDesc, { color: colors.textSecondary }]}>
@@ -189,7 +196,7 @@ export default function ProfileScreen() {
 
         {/* Logout */}
         <TouchableOpacity
-          style={[styles.logoutButton, { backgroundColor: colors.surface }]}
+          style={[styles.logoutButton, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16, backgroundColor: colors.surface }]}
           activeOpacity={0.7}
         >
           <LogOut size={20} color={colors.error} />
@@ -199,7 +206,7 @@ export default function ProfileScreen() {
         {/* Version Info */}
         <View style={styles.versionInfo}>
           <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-            AI Tutor Pro v1.0.0 • Built with ❤️
+           Collections • Built with ❤️ by Acyrx &copy; 2025
           </Text>
         </View>
       </ScrollView>
@@ -211,9 +218,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea:{
+    flex: 1,
+  },
   content: {
     flex: 1,
     padding: 20,
+    paddingTop: 0,
   },
   header: {
     marginBottom: 24,
