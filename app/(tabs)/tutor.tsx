@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
+import { StatusBar } from 'expo-status-bar';
 import { Mic, MicOff, Play, Pause, MessageSquare, Brain, Book, Calculator, Globe, Beaker } from 'lucide-react-native';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 
 export default function TutorScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const scale = useSharedValue(1);
@@ -26,17 +27,9 @@ export default function TutorScreen() {
   ];
 
   const toggleRecording = () => {
-    if (Platform.OS === 'web') {
-      // Web fallback - just toggle visual state
-      setIsRecording(!isRecording);
-      setIsSessionActive(true);
-      scale.value = withSpring(isRecording ? 1 : 1.1);
-    } else {
-      // Mobile implementation would include actual voice recording
-      setIsRecording(!isRecording);
-      setIsSessionActive(true);
-      scale.value = withSpring(isRecording ? 1 : 1.1);
-    }
+    setIsRecording(!isRecording);
+    setIsSessionActive(true);
+    scale.value = withSpring(isRecording ? 1 : 1.1);
   };
 
   const micButtonStyle = useAnimatedStyle(() => {
@@ -46,8 +39,15 @@ export default function TutorScreen() {
   });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView
+      edges={['top']}
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>AI Tutor</Text>
@@ -57,9 +57,18 @@ export default function TutorScreen() {
         </View>
 
         {/* Voice Interface */}
-        <View style={[styles.voiceSection, { backgroundColor: colors.surface }]}>
+        <View
+          style={[
+            styles.voiceSection,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderWidth: 1,
+            },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Voice Session</Text>
-          
+
           <View style={styles.voiceInterface}>
             <Animated.View style={[micButtonStyle]}>
               <TouchableOpacity
@@ -80,17 +89,17 @@ export default function TutorScreen() {
                 )}
               </TouchableOpacity>
             </Animated.View>
-            
+
             <Text style={[styles.voiceStatus, { color: colors.text }]}>
               {isRecording ? 'Listening...' : 'Tap to start speaking'}
             </Text>
-            
+
             {Platform.OS === 'web' && (
               <Text style={[styles.webNotice, { color: colors.textSecondary }]}>
                 Voice features available on mobile
               </Text>
             )}
-            
+
             {isSessionActive && (
               <View style={styles.sessionControls}>
                 <TouchableOpacity
@@ -100,7 +109,7 @@ export default function TutorScreen() {
                   <Play size={16} color="#FFFFFF" />
                   <Text style={styles.controlText}>Continue</Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={[styles.controlButton, { backgroundColor: colors.textSecondary }]}
                   activeOpacity={0.7}
@@ -114,13 +123,34 @@ export default function TutorScreen() {
         </View>
 
         {/* Subject Selection */}
-        <View style={styles.section}>
+        <View
+          style={[
+            styles.section,
+            {
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: 16,
+              padding: 16,
+            },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose Subject</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subjectsRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={[styles.subjectsRow, { marginHorizontal: 1 }]}
+          >
             {subjects.map((subject, index) => (
               <TouchableOpacity
                 key={index}
-                style={[styles.subjectCard, { backgroundColor: colors.surface }]}
+                style={[
+                  styles.subjectCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
+                ]}
                 activeOpacity={0.7}
               >
                 <subject.icon size={24} color={subject.color} />
@@ -131,19 +161,43 @@ export default function TutorScreen() {
         </View>
 
         {/* Quick Actions */}
-        <View style={styles.section}>
+        <View
+          style={[
+            styles.section,
+            {
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: 16,
+              padding: 16,
+            },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.surface }]}
+              style={[
+                styles.actionCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                },
+              ]}
               activeOpacity={0.7}
             >
               <MessageSquare size={20} color={colors.primary} />
               <Text style={[styles.actionText, { color: colors.text }]}>Start New Session</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.surface }]}
+              style={[
+                styles.actionCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                },
+              ]}
               activeOpacity={0.7}
             >
               <Brain size={20} color={colors.secondary} />
@@ -153,15 +207,34 @@ export default function TutorScreen() {
         </View>
 
         {/* Recent Sessions */}
-        <View style={styles.section}>
+        <View
+          style={[
+            styles.section,
+            {
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: 16,
+              padding: 16,
+            },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Sessions</Text>
           {recentSessions.map((session, index) => (
             <View
               key={index}
-              style={[styles.sessionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              style={[
+                styles.sessionCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                },
+              ]}
             >
               <View style={styles.sessionHeader}>
-                <Text style={[styles.sessionSubject, { color: colors.text }]}>{session.subject}</Text>
+                <Text style={[styles.sessionSubject, { color: colors.text }]}>
+                  {session.subject}
+                </Text>
                 <Text style={[styles.sessionScore, { color: colors.success }]}>{session.score}</Text>
               </View>
               <View style={styles.sessionMeta}>
@@ -181,15 +254,17 @@ export default function TutorScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
   },
-  content: {
-    flex: 1,
+  contentContainer: {
     padding: 20,
+    paddingTop: 4,
+    paddingBottom: 40,
   },
   header: {
     marginBottom: 24,
+    marginTop: 0,
   },
   title: {
     fontSize: 28,
@@ -301,7 +376,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    borderWidth: 1,
   },
   sessionHeader: {
     flexDirection: 'row',

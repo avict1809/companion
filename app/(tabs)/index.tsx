@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 20,
-    marginTop: 20,
+    marginTop: 4,
     marginBottom: 16,
   },
   ttopBar: {
@@ -312,7 +312,6 @@ const styles = StyleSheet.create({
   topBarText: {
     flex: 1,
     paddingRight: 12,
-    paddingTop: 4, // helps the greeting feel balanced vertically
   },
   topBarIcons: {
     flexDirection: 'row',

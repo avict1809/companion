@@ -39,7 +39,10 @@ export default function ProgressScreen() {
   const maxSessions = Math.max(...weeklyData.map(d => d.sessions));
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+          edges={['top']}
+          style={[styles.safeArea, { backgroundColor: colors.background }]}
+        >
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -57,8 +60,12 @@ export default function ProgressScreen() {
               style={[
                 styles.periodButton,
                 {
-                  backgroundColor: selectedPeriod === period ? colors.primary : colors.surface,
+                  backgroundColor: selectedPeriod === period ? colors.primary : 'transparent',
                 },
+                {
+                  borderColor: selectedPeriod === period ? colors.primary : colors.border,
+                  borderWidth: 1,
+                }
               ]}
               onPress={() => setSelectedPeriod(period)}
               activeOpacity={0.7}
@@ -78,7 +85,7 @@ export default function ProgressScreen() {
         </View>
 
         {/* Stats Overview */}
-        <View style={[styles.statsContainer, { backgroundColor: colors.surface }]}>
+        <View style={[styles.statsContainer, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: colors.primary }]}>15</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Sessions</Text>
@@ -98,7 +105,7 @@ export default function ProgressScreen() {
         </View>
 
         {/* Weekly Chart */}
-        <View style={[styles.chartSection, { backgroundColor: colors.surface }]}>
+        <View style={[styles.chartSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={styles.chartHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Activity</Text>
             <BarChart3 size={20} color={colors.primary} />
@@ -128,12 +135,12 @@ export default function ProgressScreen() {
         </View>
 
         {/* Subject Progress */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Subject Progress</Text>
+        <View style={[styles.section , { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 16 }]}>Subject Progress</Text>
           {subjects.map((subject, index) => (
             <View
               key={index}
-              style={[styles.subjectCard, { backgroundColor: colors.surface }]}
+              style={[styles.subjectCard, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16, backgroundColor: colors.surface }]}
             >
               <View style={styles.subjectHeader}>
                 <Text style={[styles.subjectName, { color: colors.text }]}>
@@ -165,8 +172,8 @@ export default function ProgressScreen() {
         </View>
 
         {/* Achievements */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Achievements</Text>
+        <View style={[styles.section, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text,  marginBottom: 16 }]}>Achievements</Text>
           {achievements.map((achievement, index) => (
             <View
               key={index}
@@ -200,13 +207,14 @@ export default function ProgressScreen() {
         </View>
 
         {/* Goals */}
-        <View style={[styles.goalsSection, { backgroundColor: colors.surface }]}>
+        <View style={[styles.goalsSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={styles.goalsHeader}>
             <Target size={20} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Goals</Text>
           </View>
           
-          <View style={styles.goalItem}>
+          <View style={[{ borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 , backgroundColor: colors.surface }]}>
+          <View style={[styles.goalItem]}>
             <Text style={[styles.goalText, { color: colors.text }]}>
               Complete 20 tutoring sessions
             </Text>
@@ -219,6 +227,7 @@ export default function ProgressScreen() {
             </Text>
             <Text style={[styles.goalProgress, { color: colors.success }]}>87%</Text>
           </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -226,12 +235,16 @@ export default function ProgressScreen() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
   content: {
     flex: 1,
     padding: 20,
+    paddingTop: 0
   },
   header: {
     marginBottom: 24,
