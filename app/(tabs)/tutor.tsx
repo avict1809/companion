@@ -3,22 +3,16 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { StatusBar } from 'expo-status-bar';
-import { Mic, MicOff, Play, Pause, MessageSquare, Brain, Book, Calculator, Globe, Beaker } from 'lucide-react-native';
+import { Plus, Play, Pause, Brain } from 'lucide-react-native';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import { router } from 'expo-router';
+import { useCompanions } from '@/hooks/useCompanion';
 
 export default function TutorScreen() {
   const { colors, isDark } = useTheme();
-  const [isRecording, setIsRecording] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const scale = useSharedValue(1);
-
-  const subjects = [
-    { icon: Calculator, name: 'Mathematics', color: colors.primary },
-    { icon: Beaker, name: 'Science', color: colors.accent },
-    { icon: Book, name: 'Literature', color: colors.secondary },
-    { icon: Globe, name: 'History', color: colors.success },
-    { icon: Brain, name: 'General', color: colors.warning },
-  ];
+  const { companions, loading } = useCompanions();
 
   const recentSessions = [
     { subject: 'Algebra', duration: '25 min', date: 'Today', score: '92%' },
@@ -26,10 +20,13 @@ export default function TutorScreen() {
     { subject: 'Literature', duration: '20 min', date: '2 days ago', score: '95%' },
   ];
 
-  const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    setIsSessionActive(true);
-    scale.value = withSpring(isRecording ? 1 : 1.1);
+  const toggleCreateCompanion = () => {
+    scale.value = withSpring(1.1);
+    setTimeout(() => scale.value = withSpring(1), 200);
+    router.replace('/add-companion');
+  };
+  const navigateToCompanion = (id: string) => {
+    router.push(`/companion/${id}`);
   };
 
   const micButtonStyle = useAnimatedStyle(() => {
@@ -56,7 +53,7 @@ export default function TutorScreen() {
           </Text>
         </View>
 
-        {/* Voice Interface */}
+        {/* Create Companion */}
         <View
           style={[
             styles.voiceSection,
@@ -67,7 +64,7 @@ export default function TutorScreen() {
             },
           ]}
         >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Voice Session</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Create Companion</Text>
 
           <View style={styles.voiceInterface}>
             <Animated.View style={[micButtonStyle]}>
@@ -75,30 +72,20 @@ export default function TutorScreen() {
                 style={[
                   styles.micButton,
                   {
-                    backgroundColor: isRecording ? colors.error : colors.primary,
-                    shadowColor: isRecording ? colors.error : colors.primary,
+                    backgroundColor: colors.primary,
+                    shadowColor: colors.primary,
                   },
                 ]}
-                onPress={toggleRecording}
+                onPress={toggleCreateCompanion}
                 activeOpacity={0.8}
               >
-                {isRecording ? (
-                  <MicOff size={32} color="#FFFFFF" />
-                ) : (
-                  <Mic size={32} color="#FFFFFF" />
-                )}
+                <Plus size={32} color="#FFFFFF" />
               </TouchableOpacity>
             </Animated.View>
 
             <Text style={[styles.voiceStatus, { color: colors.text }]}>
-              {isRecording ? 'Listening...' : 'Tap to start speaking'}
+              Tap to create a new companion
             </Text>
-
-            {Platform.OS === 'web' && (
-              <Text style={[styles.webNotice, { color: colors.textSecondary }]}>
-                Voice features available on mobile
-              </Text>
-            )}
 
             {isSessionActive && (
               <View style={styles.sessionControls}>
@@ -122,7 +109,7 @@ export default function TutorScreen() {
           </View>
         </View>
 
-        {/* Subject Selection */}
+        {/* Recent Companions */}
         <View
           style={[
             styles.section,
@@ -134,76 +121,42 @@ export default function TutorScreen() {
             },
           ]}
         >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose Subject</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={[styles.subjectsRow, { marginHorizontal: 1 }]}
-          >
-            {subjects.map((subject, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.subjectCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    borderWidth: 1,
-                  },
-                ]}
-                activeOpacity={0.7}
-              >
-                <subject.icon size={24} color={subject.color} />
-                <Text style={[styles.subjectName, { color: colors.text }]}>{subject.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Quick Actions */}
-        <View
-          style={[
-            styles.section,
-            {
-              borderColor: colors.border,
-              borderWidth: 1,
-              borderRadius: 16,
-              padding: 16,
-            },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
-          <View style={styles.actionsGrid}>
-            <TouchableOpacity
-              style={[
-                styles.actionCard,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                },
-              ]}
-              activeOpacity={0.7}
-            >
-              <MessageSquare size={20} color={colors.primary} />
-              <Text style={[styles.actionText, { color: colors.text }]}>Start New Session</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.actionCard,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                },
-              ]}
-              activeOpacity={0.7}
-            >
-              <Brain size={20} color={colors.secondary} />
-              <Text style={[styles.actionText, { color: colors.text }]}>Continue Previous</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Companions</Text>
+            <TouchableOpacity onPress={() => router.replace('/companions')}>
+              <Text style={[styles.viewMore, { color: colors.primary }]}>View More</Text>
             </TouchableOpacity>
           </View>
+
+          {companions.slice(0, 3).map((companion, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.sessionCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                },
+              ]}
+              onPress={() => navigateToCompanion(companion.id)}
+            >
+              <View style={styles.sessionHeader}>
+                <Text style={[styles.sessionSubject, { color: colors.text }]}>
+                  {companion.name}
+                </Text>
+                <Text style={[styles.sessionScore, { color: colors.success }]}>{companion.subject}</Text>
+              </View>
+              <View style={styles.sessionMeta}>
+                <Text style={[styles.sessionDuration, { color: colors.textSecondary }]}>
+                  {companion.topic}
+                </Text>
+                <Text style={[styles.sessionDate, { color: colors.textSecondary }]}>
+                  {companion.style}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Recent Sessions */}
@@ -288,6 +241,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     alignSelf: 'flex-start',
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  viewMore: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
   voiceInterface: {
     alignItems: 'center',
     width: '100%',
@@ -337,40 +300,6 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 24,
-  },
-  subjectsRow: {
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
-  },
-  subjectCard: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginRight: 12,
-    minWidth: 80,
-  },
-  subjectName: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  actionsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 12,
-  },
-  actionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    flex: 1,
   },
   sessionCard: {
     padding: 16,

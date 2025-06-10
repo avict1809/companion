@@ -3,17 +3,17 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { StatusBar } from 'expo-status-bar';
-import { ArrowLeft, Mic, BookOpen, User, Code, Music, MessageSquare, Plus } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, User, Code, Music, MessageSquare, Plus } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
 
 const SUBJECTS = [
-  { id: 'general', name: 'General Knowledge', icon: BookOpen },
-  { id: 'personal', name: 'Personal Assistant', icon: User },
-  { id: 'tech', name: 'Technology', icon: Code },
-  { id: 'entertainment', name: 'Entertainment', icon: Music },
-  { id: 'custom', name: 'Custom Topic', icon: MessageSquare },
+  { id: 'general', name: 'General', icon: BookOpen, color: 'primary' },
+  { id: 'personal', name: 'Personal', icon: User, color: 'accent' },
+  { id: 'tech', name: 'Tech', icon: Code, color: 'secondary' },
+  { id: 'entertainment', name: 'Entertainment', icon: Music, color: 'success' },
+  { id: 'custom', name: 'Custom', icon: MessageSquare, color: 'warning' },
 ];
 
 export default function NewCompanionScreen() {
@@ -48,7 +48,10 @@ export default function NewCompanionScreen() {
           user_id: user?.id,
           name: companionName,
           subject: selectedSubject,
-          topic: companionDescription, // Map description -> topic
+          topic: companionDescription,
+           voice: 'default', // Add default voice
+          duration: 0, // Add default duration
+          style: 'friendly' // Add default style
         }])
         .select()
         .single();
@@ -67,7 +70,6 @@ export default function NewCompanionScreen() {
     }
   };
 
-
   return (
     <SafeAreaView
       edges={['top']}
@@ -75,61 +77,67 @@ export default function NewCompanionScreen() {
     >
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.contentContainer, { paddingBottom: 40 }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => router.replace('/(tabs)/tutor')}
             activeOpacity={0.7}
+            style={styles.backButton}
           >
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.text }]}>New Voice Companion</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Create Companion</Text>
         </View>
 
         {/* Subject Selection */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose a Subject</Text>
-          <View style={styles.subjectGrid}>
+        <View style={[styles.section, { marginBottom: 24 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose Subject</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.subjectsRow}
+          >
             {SUBJECTS.map((subject) => (
               <TouchableOpacity
                 key={subject.id}
                 style={[
                   styles.subjectCard,
                   {
-                    backgroundColor: selectedSubject === subject.id ? colors.primary : colors.surface,
+                    backgroundColor: selectedSubject === subject.id ? colors[subject.color] : colors.surface,
                     borderColor: colors.border,
                     borderWidth: 1,
-                  }
+                  },
                 ]}
                 onPress={() => setSelectedSubject(subject.id)}
                 activeOpacity={0.7}
               >
                 <subject.icon
                   size={24}
-                  color={selectedSubject === subject.id ? colors.surface : colors.text}
+                  color={selectedSubject === subject.id ? colors.text : colors[subject.color]}
                 />
                 <Text
                   style={[
                     styles.subjectName,
-                    { color: selectedSubject === subject.id ? colors.surface : colors.text }
+                    {
+                      color: selectedSubject === subject.id ? colors.text : colors.text,
+                    },
                   ]}
                 >
                   {subject.name}
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Companion Details */}
-        <View style={styles.section}>
+        <View style={[styles.section, { marginBottom: 1 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Companion Details</Text>
-
-          <View style={[styles.inputContainer, { borderColor: colors.border }]}>
+          
+          <View style={[styles.inputContainer, { borderColor: colors.border, marginBottom: 16 }]}>
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder="Companion name"
@@ -142,18 +150,21 @@ export default function NewCompanionScreen() {
           <View style={[styles.inputContainer, {
             borderColor: colors.border,
             minHeight: 120,
-          }]}>
+            paddingVertical: 16,
+          }]}
+          >
             <TextInput
               style={[styles.input, {
                 color: colors.text,
                 textAlignVertical: 'top',
-                height: '100%',
+                height: '70%',
               }]}
               placeholder="Describe what your companion will be about..."
               placeholderTextColor={colors.textSecondary}
               value={companionDescription}
               onChangeText={setCompanionDescription}
               multiline
+              numberOfLines={4}
             />
           </View>
         </View>
@@ -165,14 +176,14 @@ export default function NewCompanionScreen() {
             {
               backgroundColor: colors.primary,
               opacity: isLoading ? 0.7 : 1,
-            }
+            },
           ]}
           onPress={handleCreateCompanion}
           disabled={isLoading}
           activeOpacity={0.8}
         >
-          <Plus size={20} color={colors.surface} />
-          <Text style={[styles.createButtonText, { color: colors.surface }]}>
+          <Plus size={20} color={'white'} />
+          <Text style={[styles.createButtonText, { color: 'white' }]}>
             {isLoading ? 'Creating...' : 'Create Companion'}
           </Text>
         </TouchableOpacity>
@@ -185,58 +196,50 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  container: {
-    flexGrow: 1,
+  contentContainer: {
     padding: 20,
-    paddingTop: 0,
+    paddingTop: 4,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
-    gap: 12,
   },
   backButton: {
     padding: 4,
+    marginRight: 12,
   },
   title: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
-    flex: 1,
   },
-  section: {
-    marginBottom: 24,
-  },
+  section: {},
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    marginBottom: 16,
+    marginBottom: 5,
   },
-  subjectGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  subjectsRow: {
+    paddingHorizontal: 4,
   },
   subjectCard: {
-    width: '48%',
-    aspectRatio: 1,
-    borderRadius: 16,
+    width: 80,
     padding: 16,
-    justifyContent: 'center',
+    borderRadius: 12,
     alignItems: 'center',
-    gap: 8,
+    marginRight: 12,
+    minWidth: 80,
   },
   subjectName: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    marginTop: 8,
     textAlign: 'center',
   },
   inputContainer: {
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 16,
   },
   input: {
     fontSize: 16,
@@ -249,7 +252,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     gap: 8,
-    marginTop: 8,
   },
   createButtonText: {
     fontSize: 16,

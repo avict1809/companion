@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Touchable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Zap, BookOpen, FileText, BarChart3, Clock, Star, Bell } from 'lucide-react-native';
+import { Zap, BookOpen, FileText, BarChart3, Clock, Star, Bell, Plus, PlusCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,7 +58,7 @@ export default function HomeScreen() {
     { icon: Zap, title: 'Start Tutoring', subtitle: 'Begin AI session', color: colors.primary, link: '/tutor' },
     { icon: FileText, title: 'Summarize PDF', subtitle: 'Upload & analyze', color: colors.accent, link: '/pdf-tools' },
     { icon: BookOpen, title: 'Generate Quiz', subtitle: 'Test knowledge', color: colors.secondary, link: '/pdf-tools' },
-    { icon: BarChart3, title: 'View Progress', subtitle: 'Check stats', color: colors.success, link: '/progress' },
+    { icon: PlusCircle, title: 'Add Companion', subtitle: 'Create a companion', color: colors.success, link: '/add-companion' },
   ];
 
   const recentActivities = [
@@ -103,7 +103,7 @@ export default function HomeScreen() {
 
 
         <View style={[styles.section, { borderColor: colors.border, borderWidth: 1 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Progress</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Statistics</Text>
           <View style={styles.progressRow}>
             <View style={styles.progressItem}>
               <Text style={[styles.progressNumber, { color: colors.primary }]}>12</Text>
@@ -153,10 +153,11 @@ export default function HomeScreen() {
               No companions yet. Create one!
             </Text>
           ) : (
-            companions.map((companion) => (
-              <View
+            companions.slice(0,3).map((companion) => (
+              <TouchableOpacity
                 key={companion.id}
                 style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress = {() => router.push(`/companion/${companion.id}`)}
               >
                 <View style={styles.activityHeader}>
                   <Text style={[styles.activityTitle, { color: colors.text }]}>
@@ -177,7 +178,7 @@ export default function HomeScreen() {
                     {companion.topic}
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </View>

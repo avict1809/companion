@@ -111,7 +111,7 @@ export default function CompanionDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.backButton} 
-            onPress={() => router.back()}
+            onPress={() => router.replace('/(tabs)/tutor')}
             activeOpacity={0.7}
           >
             <ArrowLeft size={24} color={colors.text} />
@@ -171,11 +171,11 @@ export default function CompanionDetailScreen() {
             onPress={startChat}
             activeOpacity={0.8}
           >
-            <Mic size={20} color={colors.surface} />
-            <Text style={[styles.actionText, { color: colors.surface }]}>
+            <Mic size={20} color={"white"} />
+            <Text style={[styles.actionText, { color: 'white' }]}>
               Start Voice Chat
             </Text>
-            <ChevronRight size={20} color={colors.surface} />
+            <ChevronRight size={20} color={"white"} />
           </TouchableOpacity>
 
           <TouchableOpacity

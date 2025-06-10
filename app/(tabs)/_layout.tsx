@@ -42,15 +42,6 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="progress"
-          options={{
-            title: 'Progress',
-            tabBarIcon: ({ size, color }) => (
-              <TrendingUp size={28} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="pdf-tools"
           options={{
             title: 'PDF Tools',
