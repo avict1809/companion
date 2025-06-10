@@ -6,10 +6,53 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Zap, BookOpen, FileText, BarChart3, Clock, Star, Bell } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from 'react';
+
 
 export default function HomeScreen() {
-  const { colors, isDark } = useTheme();
+  const { user } = useAuth();
   const router = useRouter();
+
+  const [companions, setCompanions] = useState<any[]>([]);
+  const [userName, setUserName] = useState('');
+
+  // Fetch companions + user profile
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchData = async () => {
+      try {
+        // 1️⃣ Fetch user profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+        setUserName(profileData?.username || '');
+
+        // 2️⃣ Fetch companions
+        const { data: companionsData, error: companionsError } = await supabase
+          .from('companions')
+          .select('id, name, subject, topic, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (companionsError) throw companionsError;
+        setCompanions(companionsData || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [user?.id]);
+
+  const { colors, isDark } = useTheme();
 
   const quickActions = [
     { icon: Zap, title: 'Start Tutoring', subtitle: 'Begin AI session', color: colors.primary, link: '/tutor' },
@@ -27,7 +70,7 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar style={isDark ? 'light': 'dark'} />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       {/* SafeAreaView only for top safe area */}
       <SafeAreaView edges={['top']} style={styles.safeArea}>
       </SafeAreaView>
@@ -42,7 +85,9 @@ export default function HomeScreen() {
         {/* Progress Overview */}
         <View style={styles.topBar}>
           <View style={styles.topBarText}>
-            <Text style={[styles.greeting, { color: colors.text }]}>Hello Avict! 👋</Text>
+            <Text style={[styles.greeting, { color: colors.text }]}>
+              {userName ? `Hello ${userName}! 👋` : 'Hello! 👋'}
+            </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Ready to learn something new?</Text>
           </View>
           <View style={styles.topBarIcons}>
@@ -101,30 +146,40 @@ export default function HomeScreen() {
         </View>
 
         {/* Recent Activity */}
-        <View style={[styles.section, { borderColor: colors.border, borderWidth: 1, borderBlockColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
-          {recentActivities.map((activity, index) => (
-            <View
-              key={index}
-              style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            >
-              <View style={styles.activityHeader}>
-                <Text style={[styles.activityTitle, { color: colors.text }]}>{activity.title}</Text>
-                <View style={styles.activityMeta}>
-                  <Clock size={12} color={colors.textSecondary} />
-                  <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
-                    {activity.time}
+        <View style={[styles.section, { borderColor: colors.border, borderWidth: 1 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Companions</Text>
+          {companions.length === 0 ? (
+            <Text style={{ color: colors.textSecondary, fontFamily: 'Inter-Regular' }}>
+              No companions yet. Create one!
+            </Text>
+          ) : (
+            companions.map((companion) => (
+              <View
+                key={companion.id}
+                style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              >
+                <View style={styles.activityHeader}>
+                  <Text style={[styles.activityTitle, { color: colors.text }]}>
+                    {companion.name}
+                  </Text>
+                  <View style={styles.activityMeta}>
+                    <Clock size={12} color={colors.textSecondary} />
+                    <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
+                      {new Date(companion.created_at).toLocaleDateString()}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.activityDetails}>
+                  <Text style={[styles.activitySubject, { color: colors.primary }]}>
+                    {companion.subject}
+                  </Text>
+                  <Text style={[styles.activityInfo, { color: colors.textSecondary }]}>
+                    {companion.topic}
                   </Text>
                 </View>
               </View>
-              <View style={styles.activityDetails}>
-                <Text style={[styles.activitySubject, { color: colors.primary }]}>{activity.subject}</Text>
-                <Text style={[styles.activityInfo, { color: colors.textSecondary }]}>
-                  {activity.duration || activity.pages || activity.score}
-                </Text>
-              </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
 
         {/* Achievements */}
@@ -140,6 +195,7 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+        
       </ScrollView>
     </View>
   );

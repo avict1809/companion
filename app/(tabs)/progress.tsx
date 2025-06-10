@@ -1,31 +1,131 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
-import { TrendingUp, Calendar, Target, Award, ChevronRight, BarChart3 } from 'lucide-react-native';
+import { TrendingUp, Calendar, Target, Award, ChevronRight, BarChart3, User } from 'lucide-react-native';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+
+const { user } = useAuth();
+const userId = user?.userId;
+
 
 const { width } = Dimensions.get('window');
 
+//fetching subjects
+const fetchSubjects = async () => {
+  const { data, error } = await supabase
+    .from('companions')
+    .select('subject, duration, name')
+    .eq('user_id', userId);
+  if (error) {
+    console.error('Error fetching subjects:', error);
+    return;
+  }
+
+  // Example logic: treat duration as progress (or adjust as needed)
+  const mappedSubjects = data.map(subjectRow => ({
+    name: subjectRow.subject,
+    progress: Math.min((subjectRow.duration / 60) * 10, 100), // fake progress scale
+    sessions: Math.floor(subjectRow.duration / 15), // fake session count based on duration
+    color: colors.primary, // you can map colors as needed
+  }));
+
+  setSubjects(mappedSubjects);
+};
+
+//fecthing stats
+const fetchStats = async () => {
+  const { data, error } = await supabase
+    .from('chat_history')
+    .select('created_at, chat_log')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching stats:', error);
+    return;
+  }
+
+  setSessionCount(data.length);
+
+  // Example streak logic: count distinct dates
+  const dates = data.map(row =>
+    new Date(row.created_at).toISOString().split('T')[0]
+  );
+
+  const uniqueDates = Array.from(new Set(dates)).sort().reverse();
+
+  // Calculate streak
+  let currentStreak = 0;
+  let yesterday = new Date();
+
+  for (let dateStr of uniqueDates) {
+    const date = new Date(dateStr);
+    const diff = Math.floor(
+      (yesterday - date) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diff === 0 || diff === 1) {
+      currentStreak += 1;
+      yesterday = date;
+    } else {
+      break;
+    }
+  }
+
+  setStreak(currentStreak);
+
+  // Example total hours (assuming 1 session ~ 15 mins):
+  setTotalHours(Math.round((data.length * 15) / 60));
+};
+
+
+// Fetching weekly data
+const fetchWeeklyData = async () => {
+  const { data, error } = await supabase
+    .from('chat_history')
+    .select('created_at')
+    .eq('user_id', userId)
+    .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)); // last 7 days
+
+  if (error) {
+    console.error('Error fetching weekly data:', error);
+    return;
+  }
+
+  const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const weekData = Array(7).fill(0);
+
+  data.forEach(row => {
+    const day = new Date(row.created_at).toLocaleDateString('en-US', { weekday: 'short' });
+    weekData[dayMap[day]] += 1;
+  });
+
+  const formattedData = Object.keys(dayMap).map((day, index) => ({
+    day,
+    sessions: weekData[index],
+    accuracy: 0, // No accuracy in your schema, so leave 0 or parse chat_log if you add score data
+  }));
+
+  setWeeklyData(formattedData);
+};
+
+
 export default function ProgressScreen() {
+  useEffect(() => {
+    fetchWeeklyData();
+    fetchSubjects();
+    fetchStats();
+  }, []);
+
   const { colors } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [sessionCount, setSessionCount] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [totalHours, setTotalHours] = useState(0);
 
-  const weeklyData = [
-    { day: 'Mon', sessions: 2, accuracy: 85 },
-    { day: 'Tue', sessions: 3, accuracy: 92 },
-    { day: 'Wed', sessions: 1, accuracy: 78 },
-    { day: 'Thu', sessions: 2, accuracy: 88 },
-    { day: 'Fri', sessions: 4, accuracy: 95 },
-    { day: 'Sat', sessions: 2, accuracy: 82 },
-    { day: 'Sun', sessions: 1, accuracy: 90 },
-  ];
-
-  const subjects = [
-    { name: 'Mathematics', progress: 85, sessions: 12, color: colors.primary },
-    { name: 'Science', progress: 78, sessions: 8, color: colors.accent },
-    { name: 'Literature', progress: 92, sessions: 15, color: colors.secondary },
-    { name: 'History', progress: 73, sessions: 6, color: colors.success },
-  ];
 
   const achievements = [
     { title: 'First Week', description: 'Complete 7 days of learning', earned: true },
@@ -40,9 +140,9 @@ export default function ProgressScreen() {
 
   return (
     <SafeAreaView
-          edges={['top']}
-          style={[styles.safeArea, { backgroundColor: colors.background }]}
-        >
+      edges={['top']}
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -85,7 +185,7 @@ export default function ProgressScreen() {
         </View>
 
         {/* Stats Overview */}
-        <View style={[styles.statsContainer, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
+        <View style={[styles.statsContainer, { borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: colors.primary }]}>15</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Sessions</Text>
@@ -105,12 +205,12 @@ export default function ProgressScreen() {
         </View>
 
         {/* Weekly Chart */}
-        <View style={[styles.chartSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
+        <View style={[styles.chartSection, { borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={styles.chartHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Activity</Text>
             <BarChart3 size={20} color={colors.primary} />
           </View>
-          
+
           <View style={styles.chart}>
             {weeklyData.map((data, index) => (
               <View key={index} style={styles.chartBar}>
@@ -135,12 +235,12 @@ export default function ProgressScreen() {
         </View>
 
         {/* Subject Progress */}
-        <View style={[styles.section , { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
+        <View style={[styles.section, { borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 16 }]}>Subject Progress</Text>
           {subjects.map((subject, index) => (
             <View
               key={index}
-              style={[styles.subjectCard, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16, backgroundColor: colors.surface }]}
+              style={[styles.subjectCard, { borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16, backgroundColor: colors.surface }]}
             >
               <View style={styles.subjectHeader}>
                 <Text style={[styles.subjectName, { color: colors.text }]}>
@@ -150,7 +250,7 @@ export default function ProgressScreen() {
                   {subject.progress}%
                 </Text>
               </View>
-              
+
               <View style={styles.progressBarContainer}>
                 <View style={[styles.progressBarBg, { backgroundColor: colors.border }]} />
                 <View
@@ -163,7 +263,7 @@ export default function ProgressScreen() {
                   ]}
                 />
               </View>
-              
+
               <Text style={[styles.subjectSessions, { color: colors.textSecondary }]}>
                 {subject.sessions} sessions completed
               </Text>
@@ -172,8 +272,8 @@ export default function ProgressScreen() {
         </View>
 
         {/* Achievements */}
-        <View style={[styles.section, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text,  marginBottom: 16 }]}>Achievements</Text>
+        <View style={[styles.section, { borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 16 }]}>Achievements</Text>
           {achievements.map((achievement, index) => (
             <View
               key={index}
@@ -207,26 +307,26 @@ export default function ProgressScreen() {
         </View>
 
         {/* Goals */}
-        <View style={[styles.goalsSection, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 }]}>
+        <View style={[styles.goalsSection, { borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16 }]}>
           <View style={styles.goalsHeader}>
             <Target size={20} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Goals</Text>
           </View>
-          
-          <View style={[{ borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16 , backgroundColor: colors.surface }]}>
-          <View style={[styles.goalItem]}>
-            <Text style={[styles.goalText, { color: colors.text }]}>
-              Complete 20 tutoring sessions
-            </Text>
-            <Text style={[styles.goalProgress, { color: colors.primary }]}>15/20</Text>
-          </View>
-          
-          <View style={styles.goalItem}>
-            <Text style={[styles.goalText, { color: colors.text }]}>
-              Maintain 90% accuracy
-            </Text>
-            <Text style={[styles.goalProgress, { color: colors.success }]}>87%</Text>
-          </View>
+
+          <View style={[{ borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 16, backgroundColor: colors.surface }]}>
+            <View style={[styles.goalItem]}>
+              <Text style={[styles.goalText, { color: colors.text }]}>
+                Complete 20 tutoring sessions
+              </Text>
+              <Text style={[styles.goalProgress, { color: colors.primary }]}>15/20</Text>
+            </View>
+
+            <View style={styles.goalItem}>
+              <Text style={[styles.goalText, { color: colors.text }]}>
+                Maintain 90% accuracy
+              </Text>
+              <Text style={[styles.goalProgress, { color: colors.success }]}>87%</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
