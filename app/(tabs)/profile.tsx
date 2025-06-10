@@ -18,9 +18,22 @@ import {
   Crown,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProfileScreen() {
-  const { colors, theme, setTheme, isDark } = useTheme();
+
+  const { signOut } = useAuth();
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.replace('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const { colors, setTheme, isDark } = useTheme();
 
   const stats = [
     { label: 'AI Credits', value: '245', icon: Zap, color: colors.warning },
@@ -40,7 +53,7 @@ export default function ProfileScreen() {
       icon: Bell,
       title: 'Notifications',
       subtitle: 'Manage alerts',
-      action: 'notifications',
+      action: 'notifications-settings',
       showChevron: true,
     },
     {
@@ -198,6 +211,7 @@ export default function ProfileScreen() {
         <TouchableOpacity
           style={[styles.logoutButton, { borderColor: colors.border , borderWidth: 1, borderRadius: 16, padding: 16, backgroundColor: colors.surface }]}
           activeOpacity={0.7}
+          onPress={handleLogout}
         >
           <LogOut size={20} color={colors.error} />
           <Text style={[styles.logoutText, { color: colors.error }]}>Logout</Text>
@@ -404,4 +418,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
   },
-});
+})
