@@ -224,8 +224,7 @@ export default function EditCompanionScreen() {
               <TextInput
                 style={[styles.input, {
                   color: colors.text,
-                  textAlignVertical: 'top',
-                  height: '100%',
+                  textAlignVertical: 'top'
                 }]}
                 placeholder="Describe what your companion will be about..."
                 placeholderTextColor={colors.textSecondary}
